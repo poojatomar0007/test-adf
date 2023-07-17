@@ -56,8 +56,8 @@ jobs:
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         resourceGroupName: "prod-adf"
         templateLocation: "Linked artifact"
-        csmFile: "dev-adf-test-01/ARMTemplateForFactory.json"
-        csmParametersFile: "dev-adf-test-01/ARMTemplateParametersForFactory.json"
+        template: "dev-adf-test-01/ARMTemplateForFactory.json"
+        parameters: "dev-adf-test-01/ARMTemplateParametersForFactory.json"
 
     # Post-deployment step: Start all triggers in the specified Azure Data Factory
     - name: Post-deployment - Start triggers
