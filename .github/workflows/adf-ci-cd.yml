@@ -24,9 +24,12 @@ jobs:
     - name: Pre-deployment - Stop triggers
       run: |
         $triggers = Get-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test"
-        foreach ($trigger in $triggers) {
-            Stop-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test" -Name $trigger.Name -Force
+        if ($triggers) {
+            foreach ($trigger in $triggers) {
+                Stop-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test" -Name $trigger.Name -Force
+            }
         }
+      shell: pwsh
 
     # Deploy the ARM template using the azure/arm-deploy action
     - name: Deploy ARM template
