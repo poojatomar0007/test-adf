@@ -20,6 +20,15 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Install Azure PowerShell module
+      run: |
+        if ($PSVersionTable.PSVersion.Major -lt 5 -or $IsWindows -eq $false) 
+        {
+            iex "& { $(irm https://aka.ms/install-powershell.ps1 -UseBasicP) }"
+        }
+        Install-Module -Name Az -Force -AllowClobber
+     shell: pwsh
+
     # Pre-deployment step: Stop all triggers in the specified Azure Data Factory
     - name: Pre-deployment - Stop triggers
       run: |
