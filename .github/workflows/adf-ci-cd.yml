@@ -41,6 +41,13 @@ jobs:
             }
         }
       shell: pwsh
+    # Update parameter values before deploying the ARM template
+    - name: Update parameters
+      run: |
+        $parameters = Get-Content -Path "dev-adf-test-01/ARMTemplateParametersForFactory.json" | ConvertFrom-Json
+        $parameters.parameters.factoryName.value = "prod-adf-test"
+        $parameters | ConvertTo-Json | Set-Content "dev-adf-test-01/ARMTemplateParametersForFactory.json"
+      shell: pwsh
 
     # Deploy the ARM template using the azure/arm-deploy action
     - name: Deploy ARM template
@@ -49,8 +56,8 @@ jobs:
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         resourceGroupName: "prod-adf"
         templateLocation: "Linked artifact"
-        template: "dev-adf-test-01/ARMTemplateForFactory.json"
-        parameters: "dev-adf-test-01/ARMTemplateParametersForFactory.json"
+        csmFile: "dev-adf-test-01/ARMTemplateForFactory.json"
+        csmParametersFile: "dev-adf-test-01/ARMTemplateParametersForFactory.json"
 
     # Post-deployment step: Start all triggers in the specified Azure Data Factory
     - name: Post-deployment - Start triggers
