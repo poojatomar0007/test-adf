@@ -1,24 +1,45 @@
-on:
-  push:
-    branches:
-    - adf_publish
+name: ADF CI/CD Pipeline
+
+on: 
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    name: 'This deploys to production'
+
     steps:
-    - uses: actions/checkout@v3
+    # Checkout the code from your repository
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Azure login
-      uses: Azure/login@vi
-      creds: ${{secrets.AZURE_CREDENTIALS}}
-
-    - name: Deploy ADF Azure resource manager(ARM) Template
-      uses: Azure/data-factory-deploy-action@v1.2.0
+    # Login to Azure using the credentials stored in the AZURE_CREDENTIALS secret
+    - name: Login to Azure
+      uses: azure/login@v1
       with:
-        resourceGroupName: # prod-adf
-        dataFactoryName: prod-adf-test
-        armTemplateFile: ARMTemplateForFactory.json
-        armTemplateParametersFile: ARMTemplateParametersForFactory.json
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Pre-deployment step: Stop all triggers in the specified Azure Data Factory
+    - name: Pre-deployment - Stop triggers
+      run: |
+        $triggers = Get-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test"
+        foreach ($trigger in $triggers) {
+            Stop-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test" -Name $trigger.Name -Force
+        }
+
+    # Deploy the ARM template using the azure/arm-deploy action
+    - name: Deploy ARM template
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
+        resourceGroupName: "prod-adf"
+        templateLocation: "Linked artifact"
+        csmFile: "dev-adf-test-01/ARMTemplateForFactory.json"
+        csmParametersFile: "dev-adf-test-01/ARMTemplateParametersForFactory.json"
+
+    # Post-deployment step: Start all triggers in the specified Azure Data Factory
+    - name: Post-deployment - Start triggers
+      run: |
+        $triggers = Get-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test"
+        foreach ($trigger in $triggers) {
+            Start-AzDataFactoryV2Trigger -ResourceGroupName "prod-adf" -DataFactoryName "prod-adf-test" -Name $trigger.Name -Force
+        }
