@@ -27,7 +27,7 @@ jobs:
             iex "& { $(irm https://aka.ms/install-powershell.ps1 -UseBasicP) }"
         }
         Install-Module -Name Az -Force -AllowClobber
-     shell: pwsh
+      shell: pwsh
 
     # Pre-deployment step: Stop all triggers in the specified Azure Data Factory
     - name: Pre-deployment - Stop triggers
